@@ -10,7 +10,6 @@ NewsCrawlerAPI is a Flask-based API that allows crawling news articles using the
 - [API Endpoints](#api-endpoints)
 - [Authentication and Authorization](#authentication-and-authorization)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
