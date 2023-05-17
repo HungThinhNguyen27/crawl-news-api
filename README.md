@@ -36,3 +36,29 @@ NewsCrawlerAPI is a Flask-based API that allows crawling news articles using the
 ## Usage
 
 1. Access the API endpoints using the provided URL and port number (e.g., http://localhost:5000).
+
+## API Endpoints
+
+The following API endpoints are available:
+- GET /articles: Retrieve a paginated list of articles.
+- GET /articles/{id}: Retrieve details of a specific article.
+- DELETE /articles/{id}: Delete an article from the database.
+- POST /login: Authenticate and obtain an access token.
+- POST /logout: Authenticate and obtain an access token.
+- POST /logout: Authenticate and obtain an access token.
+- POST /create-user: create account for user.
+- POST /crawl-article: Crawler 100 articles according to 1 newspaper channel selected by the user.
+
+For detailed information on each endpoint and their request/response formats, refer to the API documentation.
+
+## Authentication and Authorization
+
+Authentication and authorization are implemented using JWT (JSON Web Tokens). To access protected API endpoints, include an Authorization header with the value Bearer <access_token>. The access token can be obtained by authenticating with valid credentials using the /login endpoint.
+
+
+
+
+
+
+
+
