@@ -25,53 +25,12 @@ NewsCrawlerAPI is a Flask-based API that allows crawling news articles using the
 
    ```bash
    git clone https://github.com/your-username/NewsCrawlerAPI.git
-Navigate to the project directory:
 
-bash
-Copy code
-cd NewsCrawlerAPI
-Install the dependencies:
+2. Install the dependencies:
+   ```
+   pip install -r requirements.txt
+ 
+3. Set up the database:
+   ```
+   flask db upgrade
 
-bash
-Copy code
-pip install -r requirements.txt
-Set up the database:
-
-Modify the database configuration in config.py to match your database setup.
-
-Run the database migrations to create the necessary tables:
-
-bash
-Copy code
-flask db upgrade
-Usage
-Start the Flask development server:
-
-bash
-Copy code
-flask run
-Access the API endpoints using the provided URL and port number (e.g., http://localhost:5000).
-
-API Endpoints
-The following API endpoints are available:
-
-GET /articles: Retrieve a paginated list of articles.
-GET /articles/{id}: Retrieve details of a specific article.
-POST /articles: Crawl and add a new article to the database.
-PUT /articles/{id}: Update an existing article.
-DELETE /articles/{id}: Delete an article from the database.
-POST /login: Authenticate and obtain an access token.
-For detailed information on each endpoint and their request/response formats, refer to the API documentation.
-
-Authentication and Authorization
-Authentication and authorization are implemented using JWT (JSON Web Tokens). To access protected API endpoints, include an Authorization header with the value Bearer <access_token>. The access token can be obtained by authenticating with valid credentials using the /login endpoint.
-
-Contributing
-Contributions to NewsCrawlerAPI are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request. Make sure to follow the existing code style and conventions.
-
-Fork the repository.
-Create a new branch: git checkout -b my-feature.
-Make your changes and commit them: git commit -m 'Add new feature'.
-Push to the branch: git push origin my-feature.
-Submit a pull request.
-License
