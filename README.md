@@ -55,8 +55,15 @@ For detailed information on each endpoint and their request/response formats, re
 
 Authentication and authorization are implemented using JWT (JSON Web Tokens). To access protected API endpoints, include an Authorization header with the value Bearer <access_token>. The access token can be obtained by authenticating with valid credentials using the /login endpoint.
 
+## Contributing
 
+Contributions to NewsCrawlerAPI are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request. Make sure to follow the existing code style and conventions.
 
+- Fork the repository.
+- Create a new branch: git checkout -b my-feature.
+- Make your changes and commit them: git commit -m 'Add new feature'.
+- Push to the branch: git push origin my-feature.
+- Submit a pull request.
 
 
 
