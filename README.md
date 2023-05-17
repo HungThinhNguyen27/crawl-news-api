@@ -63,8 +63,3 @@ Contributions to NewsCrawlerAPI are welcome! If you have any suggestions, bug re
 - Make your changes and commit them: git commit -m 'Add new feature'.
 - Push to the branch: git push origin my-feature.
 - Submit a pull request.
-
-
-
-
-

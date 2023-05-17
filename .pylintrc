@@ -1,0 +1,6 @@
+[MESSAGES CONTROL]
+unresolved-import = warning
+
+
+[MASTER]
+ignore = migrations, staticfiles

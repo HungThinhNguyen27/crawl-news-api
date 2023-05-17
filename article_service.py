@@ -1,38 +1,68 @@
 
 import config
-from datalayer import ArticleMysql, CrawlData
+from datalayer import ArticleMysql, crawl_data
 from flask import jsonify, request, url_for
-from middleware import User_login, Manager
+from flask_jwt_extended import get_jwt_identity
+from model import user
 
-class ArticleService:
 
-    def __init__(self) :
-        self.user = ArticleMysql()
-        self.crawdata = CrawlData()
-        self.manager = Manager()
+class article_service():
+    
+    def __init__(self):
+        self.datalayer = ArticleMysql()
+        self.crawdata = crawl_data()
 
     def get_all_articles(self):
-        return self.user.get_all_articles()
+        return self.datalayer.get_all_articles()
 
     def get_article_by_id(self, id):
-        return self.user.search_article_by_id(id)
-    
+        return self.datalayer.search_article_by_id(id)
+
     def delete_article_by_id(self, id):
-        return self.manager.delete_article_by_id(id)
-    
+        
+        current_user = get_jwt_identity()
+        user_check = self.datalayer.session.query(user)\
+            .filter_by(username=current_user)\
+            .first()
+        self.datalayer.session.commit()
+        if user_check.role == 'manager':
+            articles = self.datalayer.delete_article_by_id(id)
+            return articles
+        else:
+            return jsonify(
+                {"Message": "you do not have access to this resource."}), 403
+        
+
+
     def article_crawling(self):
         return self.crawdata.run_everyday()
 
-class user:
+    def create_a_new_article(self):
+        current_user = get_jwt_identity()
+        user_check = self.datalayer.session.query(user)\
+            .filter_by(username=current_user)\
+            .first()
+        self.datalayer.session.commit()
+        if user_check.role == 'manager':
+            articles = self.crawdata.create_article()
+            return articles
+        else:
+            return jsonify(
+                {"Message": "you do not have access to this resource."}), 403
 
-    def __init__(self) :
-        self.user = User_login()
+    def crawl_an_article(self):
+        current_user = get_jwt_identity()
+        user_check = self.datalayer.session.query(user)\
+            .filter_by(username=current_user)\
+            .first()
+        self.datalayer.session.commit()
+        if user_check.role == 'manager':
+            articles = self.crawdata.crawl_article()
+            return articles
+        else:
+            return jsonify(
+                {"Message": "you don't have access ."}), 403
 
-    def login(self):
-        return self.user.login()
     
-    def create_user(self):
-        return self.user.create_user()
-
-    def logout(self):
-        return self.user.logout()
+    
+    
