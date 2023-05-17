@@ -33,4 +33,6 @@ NewsCrawlerAPI is a Flask-based API that allows crawling news articles using the
 3. Set up the database:
    ```
    flask db upgrade
+## Usage
 
+1. Access the API endpoints using the provided URL and port number (e.g., http://localhost:5000).
