@@ -44,8 +44,8 @@ The following API endpoints are available:
 - DELETE /articles/{id}: Delete an article from the database.
 - POST /login: Authenticate and obtain an access token.
 - POST /logout: Authenticate and obtain an access token.
-- POST /logout: Authenticate and obtain an access token.
-- POST /create-user: create account for user.
+- POST /create-user: for users to enter new news sources to crawl.
+- POST /add-article: Crawler 100 articles according to 1 newspaper channel selected by the user.
 - POST /crawl-article: Crawler 100 articles according to 1 newspaper channel selected by the user.
 
 For detailed information on each endpoint and their request/response formats, refer to the API documentation.
