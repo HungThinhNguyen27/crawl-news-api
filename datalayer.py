@@ -6,17 +6,16 @@ Provides functions for fetching, inserting, updating, and deleting data from the
 import time
 import hashlib
 import newspaper
-import pytz
+import time
+import schedule
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, func
 from config import Config
 from model import Base, news, category
 from math import ceil
 from flask import jsonify, request, url_for
-from datetime import datetime, time, timedelta
-from flask_apscheduler import APScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 from urllib.parse import urlparse
+from article_handler import Response
 
 SECRET_KEY = Config.SECRET_KEY
 MYSQL_HOST = Config.MYSQL_HOST
@@ -27,7 +26,6 @@ MYSQL_DB = Config.MYSQL_DB
 class ArticleMysql:
     """
     Class to interact with MySQL database and perform operations related to news articles.
-
     """
 
     def __init__(self):
@@ -37,6 +35,7 @@ class ArticleMysql:
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
         self.session = self.Session()
+
 
     def get_all_articles(self):
         """
@@ -69,11 +68,11 @@ class ArticleMysql:
         total_pages = int(ceil(total_count / limit))
 
         if page <= 0:
-            return jsonify({"message": "Invalid page number"}), 400
+            return Response.invalid_page_number()
         elif page > total_pages:
-            return jsonify({"message": "This page does not exist"}), 400
+            return Response.page_doesnt_exist()
         elif limit < 1 or limit > 100:
-            return jsonify({"message": "Invalid limit number"}), 400
+            return Response.invalid_limit_number()
 
         articles_dict = []
 
@@ -112,9 +111,10 @@ class ArticleMysql:
         }
 
         if not articles_dict:
-            return jsonify({'message': 'No articles found'}), 404
+            return Response.article_not_found()
 
         return jsonify({'articles': articles_dict, 'metadata': metadata})
+
 
     def search_article_by_id(self, id):
         """
@@ -137,6 +137,7 @@ class ArticleMysql:
         else:
             return jsonify(
                 {"message": "Article with id {} not found".format(id)}), 404
+
 
     def delete_article_by_id(self, id):
         """
@@ -166,6 +167,7 @@ class crawl_data:
         """
         self.database = ArticleMysql()
 
+
     def calculate_hash(self, text):
         """
         Calculates the MD5 hash of a given text string.
@@ -181,6 +183,7 @@ class crawl_data:
         md5.update(text.encode('utf-8', 'ignore'))
         return md5.hexdigest()
 
+
     def detect_duplicate(self, hash):
         """
         Checks whether an article with the given hash already exists in the database.
@@ -194,6 +197,7 @@ class crawl_data:
         count = self.database.session.query(func.count(
             news.id)).filter(news.hash == hash).scalar()
         return count > 0
+
 
     def add_news(self, url, category):
         """
@@ -219,6 +223,7 @@ class crawl_data:
         else:
             print("Duplicated!")
 
+
     def crawl_all_news(self):
         """
         Crawls news articles from a list of RSS feeds and adds them to the database.
@@ -239,28 +244,20 @@ class crawl_data:
                         pass
         self.database.session.commit()
 
-    def run_everyday(self):
-        """
-        run crawl data everyday
-        """
-        self.scheduler = APScheduler()
-        start_time = datetime.now()
-        run_time =time(hour=16, minute=42)
-        end_time = start_time + timedelta(minutes=5)
-        self.scheduler.add_job(
-            id='Scheduled task',
-            func=self.crawl_all_news(),
-            trigger='cron',
-            day_of_week='mon-sun',
-            start_date=run_time, 
-            end_date=end_time,
-            hour=run_time.hour,
-            minute=run_time.minute,
-        )
 
-        self.scheduler.start()
-        self.scheduler.shutdown()
-    
+    def run_everyday(self):
+
+        self.schedule.every().day.at("11:29").do(self.crawl_all_news)
+        allow_crawling = True
+        start_time = time.time()
+
+        while allow_crawling:
+            self.schedule.run_pending()
+            elapsed_time = time.time() - start_time
+            if elapsed_time == 120:  
+                break
+
+
     def create_article(self):
             """
             Create a new article for crawling
@@ -271,15 +268,14 @@ class crawl_data:
             # Kiểm tra xem url có đúng định dạng hay không
             parsed_url = urlparse(url)
             if not all([parsed_url.scheme, parsed_url.netloc]):
-                return jsonify({'error': 'Invalid URL format'}), 400
+                return Response.Invalid_URL_format()
 
             existing_article= self.database.session.query(category).filter_by(
                 url=url).first()
 
             if existing_article:
-                return jsonify({'error': 'Articles already exists'}), 400
+                return Response.existing_article()
             
-           
             new_article = category(
                 name=name_article,
                 url=url
@@ -291,6 +287,7 @@ class crawl_data:
                             'name': new_article.name,
                             'url': new_article.url }}), 201
 
+
     def crawl_article(self):
             """
             Crawl an article 
@@ -301,22 +298,17 @@ class crawl_data:
                 id=id_article).first()
 
             if  not existing_article:
-                return jsonify({'error': 'Article not found'}), 404
+                return Response.article_not_found()
             
             source = newspaper.build(existing_article.url)
-            count = 0
             for subcat_url in source.category_urls():
-                if count >= 100: 
-                    break
                 subcat_source = newspaper.build(subcat_url)
                 for article in subcat_source.articles:
                     try:
                         print("Article crawled===", article.url)
                         self.add_news(article.url, id_article)
-                        count += 1
                     except Exception as ex:
                         print(" Error : " + str(ex))
                         pass
             self.database.session.commit()
-            
-            return jsonify({'message': 'Article crawling......'}), 200
+            return Response.article_crawling()

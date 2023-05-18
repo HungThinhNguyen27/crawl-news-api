@@ -7,7 +7,7 @@ from user_service import UserService
 from config import Config
 from functools import wraps
 import jwt
-from flask import g
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -25,19 +25,17 @@ def jwt_required_with_blacklist(func):
         if token:
             token = token.split(' ')[1]
             if token in blacklist:
-                return jsonify({'message': 'Token revoked'}), 401  # Token đã bị thu hồi
+                return Response.token_revoked()
             try:
                 data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-                # Tiếp tục xử lý tài nguyên được bảo vệ
                 return func(*args, **kwargs)
             except jwt.ExpiredSignatureError:
-                return jsonify({'message': 'Token expired'}), 401  # Token hết hạn
+                return Response.token_expired()
             except jwt.InvalidTokenError:
-                return jsonify({'message': 'Invalid token'}), 401  # Token không hợp lệ
+                return Response.invalid_token()
         else:
-            return jsonify({'message': 'No token provided'}), 401  # Không có token
+            return Response.no_token_provided()
     return decorated
-
 
 
 @article.route('/')
@@ -45,7 +43,7 @@ def home():
     """
     Home page
     """
-    return jsonify({'Message': "This is Home page"})
+    return Response.home_page()
 
 
 @article.route('/articles', methods=['GET'])
@@ -96,9 +94,82 @@ def logout():
     if token:
         token = token.split(' ')[1]  
         blacklist.add(token)  
-        return jsonify({'message': 'Log out success'}), 200
+        return Response.log_out_success()
     else:
-        return jsonify({'message': 'No token provided'}), 401
+        return Response.no_token_provided()
     
 
 
+class Response:
+
+    @staticmethod
+    def token_revoked():
+        return jsonify({'message':'Token revoked'}), 401
+    
+    @staticmethod
+    def token_expired():
+        return jsonify({'message':'Token expired'}), 401
+    
+    @staticmethod
+    def invalid_token():
+        return jsonify({'message':'Invalid token'}), 401
+    
+    @staticmethod
+    def no_token_provided():
+        return jsonify({'message':'No token provided'}), 401
+    
+    @staticmethod
+    def log_out_success():
+        return jsonify({'message': 'Log out success'}), 200
+
+    @staticmethod
+    def home_page():
+        return jsonify({'Message': "This is Home page"}), 200
+    
+    @staticmethod
+    def authorization():
+        return jsonify({"Message": "you do not have access to this resource."}), 403
+    
+    @staticmethod
+    def invalid_page_number():
+        return jsonify({"message": "Invalid page number"}), 400
+
+    @staticmethod
+    def page_doesnt_exist():
+        return jsonify({"message": "This page does not exist"}), 400
+    
+    @staticmethod
+    def invalid_limit_number():
+        return jsonify({"message": "Invalid limit number"}), 400
+    
+    @staticmethod
+    def invalid_username_or_password():
+        return jsonify({'error': 'Invalid username or password'}), 401
+    
+    @staticmethod
+    def username_already_exists():
+        return jsonify({'error': 'Username already exists'}), 400
+    
+    @staticmethod
+    def invalid_role():
+        return jsonify({'error': 'Invalid role'}), 400
+
+    @staticmethod
+    def user_created():
+        return jsonify({'message': 'User created successfully'}), 201
+
+    @staticmethod
+    def article_not_found():
+        return jsonify({'message': 'Article not found'}), 404
+    
+    @staticmethod
+    def existing_article():
+        return jsonify({'error': 'Articles already exists'}), 400
+    
+    @staticmethod
+    def Invalid_URL_format():
+        return jsonify({'error': 'Invalid URL format'}), 400
+    
+    @staticmethod
+    def article_crawling():
+        return jsonify({'message': 'Article crawling......'}), 200

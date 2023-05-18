@@ -4,19 +4,23 @@ from datalayer import ArticleMysql, crawl_data
 from flask import jsonify, request, url_for
 from flask_jwt_extended import get_jwt_identity
 from model import user
+from article_handler import Response
 
-
-class article_service():
+class article_service:
+    
     
     def __init__(self):
         self.datalayer = ArticleMysql()
         self.crawdata = crawl_data()
 
+
     def get_all_articles(self):
         return self.datalayer.get_all_articles()
 
+
     def get_article_by_id(self, id):
         return self.datalayer.search_article_by_id(id)
+
 
     def delete_article_by_id(self, id):
         
@@ -29,13 +33,12 @@ class article_service():
             articles = self.datalayer.delete_article_by_id(id)
             return articles
         else:
-            return jsonify(
-                {"Message": "you do not have access to this resource."}), 403
-        
-
+            return Response.authorization()
+    
 
     def article_crawling(self):
         return self.crawdata.run_everyday()
+
 
     def create_a_new_article(self):
         current_user = get_jwt_identity()
@@ -47,8 +50,8 @@ class article_service():
             articles = self.crawdata.create_article()
             return articles
         else:
-            return jsonify(
-                {"Message": "you do not have access to this resource."}), 403
+            return Response.authorization()
+
 
     def crawl_an_article(self):
         current_user = get_jwt_identity()
@@ -60,8 +63,7 @@ class article_service():
             articles = self.crawdata.crawl_article()
             return articles
         else:
-            return jsonify(
-                {"Message": "you don't have access ."}), 403
+            return Response.authorization()
 
     
     

@@ -10,7 +10,7 @@ from flask import jsonify, request, session
 from model import user
 from config import Config
 from datalayer import ArticleMysql
-
+from article_handler import Response
 
 class UserData:
     """
@@ -58,7 +58,7 @@ class UserData:
 
             return jsonify({'token': token})
         else:
-            return jsonify({'error': 'Invalid username or password'}), 401
+            return Response.invalid_username_or_password()
 
 
     def create_user(self):
@@ -74,10 +74,9 @@ class UserData:
             username=username).first()
 
         if existing_user:
-            return jsonify({'error': 'Username already exists'}), 400
-
+            return Response.username_already_exists()
         if role not in ['user', 'manager']:
-            return jsonify({'error': 'Invalid role'}), 400
+            return Response.invalid_role()
 
         new_user = user(
             username=username,
@@ -87,5 +86,5 @@ class UserData:
         )
         self.database.session.add(new_user)
         self.database.session.commit()
-        return jsonify({'message': 'User created successfully'}), 201
+        return Response.user_created()
     
