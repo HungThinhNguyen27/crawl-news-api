@@ -307,7 +307,6 @@ class crawl_data:
             count = 0
             for subcat_url in source.category_urls():
                 if count >= 100: 
-                    print('stopped') # Kiểm tra nếu đã crawl đủ 100 bài viết
                     break
                 subcat_source = newspaper.build(subcat_url)
                 for article in subcat_source.articles:
