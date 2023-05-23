@@ -1,68 +1,76 @@
-
-import config
-from datalayer import ArticleMysql, crawl_data
+from math import ceil
+from datalayer import ArticleMysql
 from flask import jsonify, request, url_for
+from model import ArticleOutput, category
 from flask_jwt_extended import get_jwt_identity
-from model import user
 
 
-class article_service():
-    
+class ArticleService:
     def __init__(self):
         self.datalayer = ArticleMysql()
-        self.crawdata = crawl_data()
 
-    def get_all_articles(self):
-        return self.datalayer.get_all_articles()
+    def get_all_articles(self, page, limit, query):
+        offset = (page - 1) * limit
+        articles, total_count = self.datalayer.get_all_articles(query, limit, offset)
 
-    def get_article_by_id(self, id):
-        return self.datalayer.search_article_by_id(id)
+        total_pages = int(ceil(total_count / limit))
+        articles_dict = []
+
+        for article in articles:
+            article_output = ArticleOutput(article)
+            article_dict = article_output.output()
+            articles_dict.append(article_dict)
+
+        next_page = page + 1 if page < total_pages else None
+
+        if query:
+            next_page_url = (
+                url_for(
+                    "article.get_all_articles", limit=limit, page=next_page, key=query
+                )
+                if next_page
+                else None
+            )
+        else:
+            next_page_url = (
+                url_for("article.get_all_articles", limit=limit, page=next_page)
+                if next_page
+                else None
+            )
+
+        metadata = {
+            "page_number": page,
+            "items_per_page": limit,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "current_url": request.url,
+            "next_page_url": next_page_url,
+        }
+
+        return {"articles": articles_dict, "metadata": metadata}, int(total_pages)
+
+    def search_article_by_id(self, id):
+        search_article = self.datalayer.get_article_by_id(id)
+
+        if search_article:
+            article_output = ArticleOutput(search_article)
+            article_dict = article_output.output()
+            return article_dict, search_article
 
     def delete_article_by_id(self, id):
-        
-        current_user = get_jwt_identity()
-        user_check = self.datalayer.session.query(user)\
-            .filter_by(username=current_user)\
-            .first()
-        self.datalayer.session.commit()
-        if user_check.role == 'manager':
-            articles = self.datalayer.delete_article_by_id(id)
-            return articles
-        else:
-            return jsonify(
-                {"Message": "you do not have access to this resource."}), 403
-        
+        search_article = self.datalayer.get_article_by_id(id)
+        if search_article:
+            self.datalayer.delete_article_by_id(search_article)
+            return search_article
 
+    def create_new_src_article(self, name_article, url):
+        check_src_article = self.datalayer.check_existing_src_article(url)
 
-    def article_crawling(self):
-        return self.crawdata.run_everyday()
+        if check_src_article:
+            return check_src_article
 
-    def create_a_new_article(self):
-        current_user = get_jwt_identity()
-        user_check = self.datalayer.session.query(user)\
-            .filter_by(username=current_user)\
-            .first()
-        self.datalayer.session.commit()
-        if user_check.role == 'manager':
-            articles = self.crawdata.create_article()
-            return articles
-        else:
-            return jsonify(
-                {"Message": "you do not have access to this resource."}), 403
+        new_article = category(name=name_article, url=url)
 
-    def crawl_an_article(self):
-        current_user = get_jwt_identity()
-        user_check = self.datalayer.session.query(user)\
-            .filter_by(username=current_user)\
-            .first()
-        self.datalayer.session.commit()
-        if user_check.role == 'manager':
-            articles = self.crawdata.crawl_article()
-            return articles
-        else:
-            return jsonify(
-                {"Message": "you don't have access ."}), 403
+        add_new_src_articles = self.datalayer.add_new_src_articles(new_article)
 
-    
-    
-    
+        return add_new_src_articles
