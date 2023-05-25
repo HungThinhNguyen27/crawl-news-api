@@ -1,20 +1,18 @@
-from flask import Flask, jsonify, Blueprint, request, session
-from flask_jwt_extended import jwt_required, unset_jwt_cookies
-from article_service import ArticleService
-from user_service import UserData
-from config import Config
-from functools import wraps
-from datalayer import ArticleMysql
 import jwt
-from flask_jwt_extended import get_jwt_identity
-from urllib.parse import urlparse
+from config import Config
+from datalayer import ArticleMysql
+from functools import wraps
+from user_service import UserService
+from flask_jwt_extended import jwt_required
+from article_service import ArticleService
 from crawl_article_service import CrawlNewsService
+from flask import Flask, jsonify, Blueprint, request
 
 app = Flask(__name__)
 app.config.from_object(Config)
 user_handler = Blueprint("user", __name__)
 article_service = ArticleService()
-middleware = UserData()
+middleware = UserService()
 CrawlNews = CrawlNewsService()
 
 
@@ -51,7 +49,7 @@ def create_user():
     if role not in ["user", "manager"]:
         return Response.invalid_role(role)
 
-    user_create = middleware.create_user1(username, password, email, role)
+    user_create = middleware.create_user(username, password, email, role)
 
     if user_create:
         return Response.username_already_exists(username)
@@ -102,8 +100,8 @@ class Response:
         return jsonify({"message": "Invalid token"}), 401
 
     @staticmethod
-    def no_token_provided():
-        return jsonify({"message": "No token provided"}), 401
+    def valid_token():
+        return jsonify({"message": "valid token"}), 401
 
     @staticmethod
     def log_out_success():
@@ -131,3 +129,7 @@ class Response:
     @staticmethod
     def username_already_exists(username):
         return jsonify({"message": "Username {} already exists".format(username)}), 201
+
+    @staticmethod
+    def no_token_provided():
+        return jsonify({"error": "No token provided"}), 400

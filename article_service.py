@@ -1,8 +1,7 @@
 from math import ceil
 from datalayer import ArticleMysql
 from flask import jsonify, request, url_for
-from model import ArticleOutput, category
-from flask_jwt_extended import get_jwt_identity
+from model import ArticleOutput, Category
 
 
 class ArticleService:
@@ -69,7 +68,7 @@ class ArticleService:
         if check_src_article:
             return check_src_article
 
-        new_article = category(name=name_article, url=url)
+        new_article = Category(name=name_article, url=url)
 
         add_new_src_articles = self.datalayer.add_new_src_articles(new_article)
 

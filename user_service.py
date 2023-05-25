@@ -3,15 +3,15 @@ Module: middleware
 
 This module provides the UserData class, which handles user-related operations.
 """
-from datetime import datetime, timedelta
 import jwt
-from flask import jsonify, request, session
-from model import user
+from model import User
 from config import Config
 from datalayer import UserMysql
+from datetime import datetime, timedelta
+from flask import jsonify, request, session
 
 
-class UserData:
+class UserService:
     """
     Middleware class for user-related operations.
     """
@@ -28,20 +28,24 @@ class UserData:
         if user_obj:
             payload = {
                 "sub": username,
-                "exp": datetime.utcnow() + timedelta(minutes=60),
+                "exp": datetime.utcnow() + timedelta(minutes=20),
             }
             token = jwt.encode(payload, Config.SECRET_KEY, algorithm="HS256")
             return token, user_obj
         return user_obj
 
-    def create_user1(self, username, password, email, role):
+    def create_user(self, username, password, email, role):
         exis_user = self.datalayer.existing_user(username)
 
         if exis_user:
             return exis_user
 
-        new_user = user(username=username, password=password, email=email, role=role)
+        new_user = User(username=username, password=password, email=email, role=role)
 
         add_user = self.datalayer.add_user(new_user)
 
         return add_user
+
+    def user_check_role(self, current_user):
+        user_check_role = self.datalayer.user_check_role(current_user)
+        return user_check_role
