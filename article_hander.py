@@ -1,22 +1,20 @@
-from flask import Flask, jsonify, Blueprint, request, session
-from flask_jwt_extended import jwt_required, unset_jwt_cookies
-from article_service import ArticleService
-from user_service import UserData
 from config import Config
 from functools import wraps
-from datalayer import ArticleMysql
-import jwt
-from flask_jwt_extended import get_jwt_identity
 from urllib.parse import urlparse
+from user_service import user_service
+from article_service import ArticleService
+from flask_jwt_extended import get_jwt_identity
 from crawl_article_service import CrawlNewsService
 from user_handler import jwt_required_with_blacklist
+from flask import Flask, jsonify, Blueprint, request, session
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
 article_handler = Blueprint("article", __name__)
 article_service = ArticleService()
-middleware = UserData()
-CrawlNews = CrawlNewsService()
+middleware = user_service()
+crawl_news = CrawlNewsService()
 
 
 @article_handler.route("/articles", methods=["GET"])
@@ -53,7 +51,7 @@ def get_article_by_id(id):
 @jwt_required_with_blacklist
 def delete_article_by_id(id):
     current_user = get_jwt_identity()
-    user_check = middleware.datalayer.user_check_role(current_user)
+    user_check = middleware.user_check_role(current_user)
     if user_check.role == "manager":
         search_article = article_service.delete_article_by_id(id)
         if search_article:
@@ -68,7 +66,7 @@ def delete_article_by_id(id):
 @jwt_required_with_blacklist
 def create_a_src_news():
     current_user = get_jwt_identity()
-    user_check = middleware.datalayer.user_check_role(current_user)
+    user_check = middleware.user_check_role(current_user)
     if user_check.role == "manager":
         name_article = request.json.get("name_article")
         url = request.json.get("url")
@@ -92,14 +90,14 @@ def create_a_src_news():
 @jwt_required_with_blacklist
 def craw_an_article():
     current_user = get_jwt_identity()
-    user_check = middleware.datalayer.user_check_role(current_user)
+    user_check = middleware.user_check_role(current_user)
     if user_check.role == "manager":
         url = request.json.get("url")
 
         if not url:
             return Response.url_not_provided()
 
-        existing_url = CrawlNews.crawl_one_news(url)
+        existing_url = crawl_news.crawl_one_news(url)
 
         if not existing_url:
             return Response.article_not_found(existing_url)

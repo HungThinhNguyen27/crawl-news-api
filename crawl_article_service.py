@@ -2,7 +2,7 @@ import hashlib
 import newspaper
 import time
 import schedule
-from model import Base, news, category
+from model import Base, News, Category
 from datalayer import CrawlDataMysql
 
 
@@ -22,7 +22,7 @@ class CrawlNewsService:
         hash = self.calculate_hash(article.text)
 
         if not self.datalayer.detect_duplicate(hash):
-            new_post_template = news(
+            new_post_template = News(
                 title=article.title,
                 img_links=article.top_image,
                 content=article.text,

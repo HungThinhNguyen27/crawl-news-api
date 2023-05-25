@@ -22,7 +22,7 @@ import sqlalchemy
 Base = sqlalchemy.orm.declarative_base()
 
 
-class news(Base):
+class News(Base):
     """Class representing news table."""
 
     __tablename__ = "news"
@@ -34,7 +34,7 @@ class news(Base):
     original_url = Column(String(255))
     category_id = Column(Integer, ForeignKey("category_news.id"))
     hash = Column(Text)
-    category = relationship("category", back_populates="articles")
+    category = relationship("Category", back_populates="articles")
 
     __table_args__ = (
         Index("category_idx", category_id),
@@ -46,7 +46,7 @@ class news(Base):
     )
 
 
-class category(Base):
+class Category(Base):
     """Class representing category_news table."""
 
     __tablename__ = "category_news"
@@ -54,10 +54,10 @@ class category(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     url = Column(String(255), nullable=False)
-    articles = relationship("news", back_populates="category")
+    articles = relationship("News", back_populates="category")
 
 
-class user(Base):
+class User(Base):
     """Class representing user table."""
 
     __tablename__ = "user"
