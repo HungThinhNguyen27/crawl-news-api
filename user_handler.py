@@ -2,7 +2,7 @@ import jwt
 from config import Config
 from datalayer import ArticleMysql
 from functools import wraps
-from user_service import user_service
+from user_service import UserService
 from flask_jwt_extended import jwt_required
 from article_service import ArticleService
 from crawl_article_service import CrawlNewsService
@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 user_handler = Blueprint("user", __name__)
 article_service = ArticleService()
-middleware = user_service()
+middleware = UserService()
 CrawlNews = CrawlNewsService()
 
 

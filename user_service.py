@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from flask import jsonify, request, session
 
 
-class user_service:
+class UserService:
     """
     Middleware class for user-related operations.
     """

@@ -1,7 +1,7 @@
 from config import Config
 from functools import wraps
 from urllib.parse import urlparse
-from user_service import user_service
+from user_service import UserService
 from article_service import ArticleService
 from flask_jwt_extended import get_jwt_identity
 from crawl_article_service import CrawlNewsService
@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 article_handler = Blueprint("article", __name__)
 article_service = ArticleService()
-middleware = user_service()
+middleware = UserService()
 crawl_news = CrawlNewsService()
 
 
