@@ -3,25 +3,25 @@ import newspaper
 import time
 import schedule
 from model import Base, News, Category
-from datalayer import CrawlDataMysql
+from crawl_article_datalayer import CrawlDataMysql
 
 
 class CrawlNewsService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.datalayer = CrawlDataMysql()
 
-    def calculate_hash(self, text):
+    def calculate_hash(self, text: str) -> str:
         md5 = hashlib.md5()
         md5.update(text.encode("utf-8", "ignore"))
         return md5.hexdigest()
 
-    def add_new_articles(self, url, category):
+    def add_new_articles(self, url: str, category: int) -> None:
         article = newspaper.Article(url)
         article.download()
         article.parse()
         hash = self.calculate_hash(article.text)
 
-        if not self.datalayer.detect_duplicate(hash):
+        if not self.datalayer.query_hash(hash):
             new_post_template = News(
                 title=article.title,
                 img_links=article.top_image,
@@ -31,12 +31,12 @@ class CrawlNewsService:
                 hash=hash,
             )
 
-            add_new_post_template = self.datalayer.add_new_post(new_post_template)
+            self.datalayer.add_new_post(new_post_template)
 
         else:
             print("Duplicated Post!")
 
-    def crawl_all_news(self):
+    def crawl_all_news(self) -> None:
         cats = self.datalayer.query_all_src_news()
 
         for cat in cats:
@@ -54,7 +54,7 @@ class CrawlNewsService:
 
         self.datalayer.commit()
 
-    def crawl_one_news(self, url):
+    def crawl_one_news(self, url: str) -> Category:
         existing_article = self.datalayer.query_url_src_news(url)
 
         source = newspaper.build(existing_article.url)
@@ -71,13 +71,13 @@ class CrawlNewsService:
         self.datalayer.commit()
         return existing_article
 
-    def run_everyday(self):
-        schedule.every().day.at("11:29").do(self.crawl_all_news)
+    def run_everyday(self) -> None:
+        schedule.every().day.at("19:50").do(self.crawl_all_news)
         allow_crawling = True
         start_time = time.time()
 
         while allow_crawling:
             schedule.run_pending()
             elapsed_time = time.time() - start_time
-            if elapsed_time == 120:
+            if elapsed_time == 3000:
                 break

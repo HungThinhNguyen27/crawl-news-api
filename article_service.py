@@ -1,40 +1,39 @@
 from math import ceil
-from datalayer import ArticleMysql
+from articles_datalayer import ArticleMysql
 from flask import jsonify, request, url_for
-from model import ArticleOutput, Category
+from model import ArticleOutput, Category, News
+from typing import List, Dict, Optional, Tuple
 
 
 class ArticleService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.datalayer = ArticleMysql()
 
-    def get_all_articles(self, page, limit, query):
+    def search_all_articles(
+        self, page: int, limit: int, query: Optional[str]
+    ) -> Tuple[Dict[str, List[Dict[str, str]]], int]:
+        
         offset = (page - 1) * limit
-        articles, total_count = self.datalayer.get_all_articles(query, limit, offset)
+        articles = (
+            self.datalayer.get_first_articles(query)
+            if query
+            else self.datalayer.get_all_articles()
+        )
+        total_count = len(articles)
+        total_pages = (total_count + limit - 1) // limit
 
-        total_pages = int(ceil(total_count / limit))
+        paginated_articles = articles[offset : offset + limit]
         articles_dict = []
 
-        for article in articles:
+        for article in paginated_articles:
             article_output = ArticleOutput(article)
             article_dict = article_output.output()
             articles_dict.append(article_dict)
 
-        next_page = page + 1 if page < total_pages else None
-
-        if query:
+        next_page_url = None
+        if page < total_pages:
             next_page_url = (
-                url_for(
-                    "article.get_all_articles", limit=limit, page=next_page, key=query
-                )
-                if next_page
-                else None
-            )
-        else:
-            next_page_url = (
-                url_for("article.get_all_articles", limit=limit, page=next_page)
-                if next_page
-                else None
+                f"{request.base_url}?key={query}&page={page + 1}&limit={limit}"
             )
 
         metadata = {
@@ -46,24 +45,24 @@ class ArticleService:
             "next_page_url": next_page_url,
         }
 
-        return {"articles": articles_dict, "metadata": metadata}, int(total_pages)
+        return {"articles": articles_dict, "metadata": metadata}, total_pages
 
-    def search_article_by_id(self, id):
-        search_article = self.datalayer.get_article_by_id(id)
+    def search_article_by_id(self, id: int) -> Tuple[Dict[str, str], Optional[News]]:
+        search_article = self.datalayer.get_articles_by_id(id)
 
         if search_article:
             article_output = ArticleOutput(search_article)
             article_dict = article_output.output()
             return article_dict, search_article
 
-    def delete_article_by_id(self, id):
-        search_article = self.datalayer.get_article_by_id(id)
+    def delete_article_by_id(self, id: int) -> Optional[News]:
+        search_article = self.datalayer.get_articles_by_id(id)
         if search_article:
             self.datalayer.delete_article_by_id(search_article)
             return search_article
 
-    def create_new_src_article(self, name_article, url):
-        check_src_article = self.datalayer.check_existing_src_article(url)
+    def create_new_src_article(self, name_article: str, url: str) -> Optional[Category]:
+        check_src_article = self.datalayer.get_category_url(url)
 
         if check_src_article:
             return check_src_article

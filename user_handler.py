@@ -1,6 +1,5 @@
 import jwt
 from config import Config
-from datalayer import ArticleMysql
 from functools import wraps
 from user_service import UserService
 from flask_jwt_extended import jwt_required
@@ -49,9 +48,9 @@ def create_user():
     if role not in ["user", "manager"]:
         return Response.invalid_role(role)
 
-    user_create = middleware.create_user(username, password, email, role)
+    existing_user = middleware.create_user(username, password, email, role)
 
-    if user_create:
+    if existing_user:
         return Response.username_already_exists(username)
 
     return Response.create_account_success(username)

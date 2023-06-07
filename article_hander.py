@@ -29,7 +29,7 @@ def get_all_articles():
     elif limit < 1 or limit > 100:
         return Response.invalid_limit_number()
 
-    result, total_pages = article_service.get_all_articles(page, limit, query)
+    result, total_pages = article_service.search_all_articles(page, limit, query)
     if page > int(total_pages):
         return Response.page_doesnt_exist()
 
@@ -71,7 +71,6 @@ def create_a_src_news():
         name_article = request.json.get("name_article")
         url = request.json.get("url")
 
-        # Kiểm tra xem url có đúng định dạng hay không
         parsed_url = urlparse(url)
         if not all([parsed_url.scheme, parsed_url.netloc]):
             return Response.Invalid_URL_format()
@@ -81,7 +80,7 @@ def create_a_src_news():
         if src_article_create:
             return Response.articles_name_exists(name_article)
 
-        return Response.created_successfully()
+        return Response.created_successfully(name_article, url)
     else:
         return Response.unauthorized()
 

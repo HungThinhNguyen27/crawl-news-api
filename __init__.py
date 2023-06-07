@@ -13,7 +13,8 @@ app.register_blueprint(user_handler)
 app.register_blueprint(article_handler)
 
 if __name__ == "__main__":
-    article_service = CrawlNewsService()
-    everyday_thread = threading.Thread(target=article_service.run_everyday())
-    everyday_thread.start()
+
+    # article_service = CrawlNewsService()
+    # everyday_thread = threading.Thread(target=article_service.run_everyday())
+    # everyday_thread.start()
     app.run(debug=True)

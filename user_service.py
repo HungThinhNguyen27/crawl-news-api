@@ -6,9 +6,10 @@ This module provides the UserData class, which handles user-related operations.
 import jwt
 from model import User
 from config import Config
-from datalayer import UserMysql
+from user_datalayer import UserMysql
 from datetime import datetime, timedelta
 from flask import jsonify, request, session
+from typing import Optional, Tuple
 
 
 class UserService:
@@ -19,12 +20,12 @@ class UserService:
     def __init__(self):
         self.datalayer = UserMysql()
 
-    def login(self, username, password):
+    def login(self, username: str, password: str) -> Optional[Tuple[str, User]]:
         """
         User login functionality.
         """
         # Check user login information
-        user_obj = self.datalayer.user_check_login(username, password)
+        user_obj = self.datalayer.get_username_password(username, password)
         if user_obj:
             payload = {
                 "sub": username,
@@ -32,10 +33,12 @@ class UserService:
             }
             token = jwt.encode(payload, Config.SECRET_KEY, algorithm="HS256")
             return token, user_obj
-        return user_obj
+        return None
 
-    def create_user(self, username, password, email, role):
-        exis_user = self.datalayer.existing_user(username)
+    def create_user(
+        self, username: str, password: str, email: str, role: str
+    ) -> Optional[User]:
+        exis_user = self.datalayer.get_username(username)
 
         if exis_user:
             return exis_user
@@ -46,6 +49,6 @@ class UserService:
 
         return add_user
 
-    def user_check_role(self, current_user):
+    def user_check_role(self, current_user: str) -> Optional[str]:
         user_check_role = self.datalayer.user_check_role(current_user)
         return user_check_role
