@@ -1,10 +1,10 @@
 import threading
 from flask import Flask
 from config import Config
-from user_handler import user_handler
-from article_hander import article_handler
+from handler.article_hander import article_handler
+from handler.user_handler import user_handler
 from flask_jwt_extended import JWTManager
-from crawl_article_service import CrawlNewsService
+from service.crawl_article_service import CrawlNewsService
 
 app = Flask(__name__)
 app.config.from_object(Config)
