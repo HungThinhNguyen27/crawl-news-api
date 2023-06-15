@@ -1,4 +1,4 @@
-
+# export PYTHONPATH=$PYTHONPATH:/Users/macos/Downloads/WORKSPACE/NewsCrawlerAPI/model
 
 from config import Config
 
