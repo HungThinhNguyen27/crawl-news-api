@@ -29,17 +29,34 @@ class Database:
 
 
 class ArticleMysql(Database):
-    def get_all_articles(self) -> List[News]:
-        all_articles = self.session.query(News).all()
-        return all_articles
 
-    def get_articles_by_keywords(self, query: str) -> List[News]:
-        first_articles = (
-            self.session.query(News)
-            .filter(News.title.contains(query))
-            .all()
-        )
-        return first_articles
+    # def get_all_articles(self) -> List[News]:
+    #     all_articles = self.session.query(News).all()
+    #     return all_articles
+
+    # def get_articles_by_keywords(self, query: str) -> List[News]:
+    #     first_articles = (
+    #         self.session.query(News)
+    #         .filter(News.title.contains(query))
+    #         .all()
+    #     )
+    #     return first_articles
+
+    def get_articles_by_keyword_or_all(self, query: str, limit: int, offset: int) -> List[News]:
+
+        if query:
+            articles = self.session.query(News).filter(
+                News.title.contains(query))
+            total_count_query = self.session.query(
+                func.count()).filter(News.title.contains(query))
+        else:
+            articles = self.session.query(News)
+            total_count_query = self.session.query(func.count())
+
+        articles = articles.limit(limit).offset(offset).all()
+        total_count = total_count_query.scalar()
+
+        return articles, total_count
 
     def get_articles_by_id(self, id: int) -> Optional[News]:
         id_articles = self.session.query(News).filter_by(id=id).first()

@@ -14,10 +14,10 @@ class ArticleService:
     ) -> Tuple[Dict[str, List[Dict[str, str]]], int]:
 
         offset = (page - 1) * limit
-        articles = self.datalayer.get_articles_by_keywords(
-            query) if query else self.datalayer.get_all_articles()
-
-        total_count = len(articles)
+        # articles = self.datalayer.get_articles_by_keywords(
+        #     query) if query else self.datalayer.get_all_articles()
+        articles, total_count = self.datalayer.get_articles_by_keyword_or_all(
+            query, limit, offset)
         total_pages = (total_count + limit - 1) // limit
 
         paginated_articles = articles[offset: offset + limit]

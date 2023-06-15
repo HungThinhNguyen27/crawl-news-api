@@ -5,7 +5,7 @@ from service.user_service import UserService
 from flask_jwt_extended import jwt_required
 from service.article_service import ArticleService
 from service.crawl_article_service import CrawlNewsService
-from flask import Flask, jsonify, Blueprint, request
+from flask import Flask, jsonify, Blueprint, request, session
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -15,19 +15,22 @@ middleware = UserService()
 CrawlNews = CrawlNewsService()
 
 
-def jwt_required_with_blacklist(func):
+def jwt_required_authentication(func):
     @wraps(func)
     @jwt_required()
     def decorated(*args, **kwargs):
         token = request.headers.get("Authorization")
         if token:
             token = token.split(" ")[1]
-            if token in blacklist:
-                return Response.token_revoked()
             try:
                 data = jwt.decode(
                     token, app.config["SECRET_KEY"], algorithms=["HS256"])
-                return func(*args, **kwargs)
+
+                if "logged_in" in session and session["username"] == data["sub"]:
+                    return func(*args, **kwargs)
+                else:
+                    return Response.token_expired()
+
             except jwt.ExpiredSignatureError:
                 return Response.token_expired()
             except jwt.InvalidTokenError:
@@ -39,7 +42,7 @@ def jwt_required_with_blacklist(func):
 
 
 @user_handler.route("/account", methods=["POST"])
-@jwt_required_with_blacklist
+@jwt_required_authentication
 def create_user():
     username = request.json.get("username")
     password = request.json.get("password")
@@ -67,20 +70,21 @@ def login():
     if token_user is not None:
         token, user_obj = token_user
         if user_obj:
+            session["logged_in"] = True
+            session["username"] = username
             return jsonify({"token": token}), 200
     else:
         return Response.invalid_username_or_password()
 
 
-blacklist = set()
-
-
 @user_handler.route("/logout", methods=["POST"])
+@jwt_required_authentication
 def logout():
     token = request.headers.get("Authorization")
     if token:
         token = token.split(" ")[1]
-        blacklist.add(token)
+        session.pop("logged_in", None)
+        session.pop("username", None)
         return Response.log_out_success()
     else:
         return Response.no_token_provided()

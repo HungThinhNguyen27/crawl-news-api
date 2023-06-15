@@ -5,7 +5,7 @@ from service.user_service import UserService
 from service.article_service import ArticleService
 from flask_jwt_extended import get_jwt_identity
 from service.crawl_article_service import CrawlNewsService
-from handler.user_handler import jwt_required_with_blacklist
+from handler.user_handler import jwt_required
 from flask import Flask, jsonify, Blueprint, request, session
 
 
@@ -18,7 +18,7 @@ crawl_news = CrawlNewsService()
 
 
 @article_handler.route("/articles", methods=["GET"])
-@jwt_required_with_blacklist
+@jwt_required
 def get_all_articles():
     page = int(request.args.get("page", 1))
     limit = int(request.args.get("limit", 10))
@@ -38,7 +38,7 @@ def get_all_articles():
 
 
 @article_handler.route("/articles/<int:id>", methods=["GET"])
-@jwt_required_with_blacklist
+@jwt_required
 def get_article_by_id(id):
     result = article_service.search_article_by_id(id)
     if result is not None:
@@ -49,7 +49,7 @@ def get_article_by_id(id):
 
 
 @article_handler.route("/articles/<int:id>", methods=["DELETE"])
-@jwt_required_with_blacklist
+@jwt_required
 def delete_article_by_id(id):
     current_user = get_jwt_identity()
     user_check = middleware.user_check_role(current_user)
@@ -64,7 +64,7 @@ def delete_article_by_id(id):
 
 
 @article_handler.route("/articles", methods=["POST"])
-@jwt_required_with_blacklist
+@jwt_required
 def create_a_src_news():
     current_user = get_jwt_identity()
     user_check = middleware.user_check_role(current_user)
@@ -89,7 +89,7 @@ def create_a_src_news():
 
 
 @article_handler.route("/crawl-article", methods=["POST"])
-@jwt_required_with_blacklist
+@jwt_required
 def craw_an_article():
     current_user = get_jwt_identity()
     user_check = middleware.user_check_role(current_user)
