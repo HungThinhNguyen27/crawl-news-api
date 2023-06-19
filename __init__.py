@@ -1,10 +1,10 @@
 import threading
 from flask import Flask
 from config import Config
-from handler.article_hander import article_handler
-from handler.user_handler import user_handler
+from handler.article import article_handler
+from handler.user import user_handler
 from flask_jwt_extended import JWTManager
-from service.crawl_article_service import CrawlNewsService
+from service.crawl_article import CrawlNewsService
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -14,7 +14,7 @@ app.register_blueprint(article_handler)
 
 if __name__ == "__main__":
 
-    # article_service = CrawlNewsService()
-    # everyday_thread = threading.Thread(target=article_service.run_everyday())
-    # everyday_thread.start()
+    article_service = CrawlNewsService()
+    everyday_thread = threading.Thread(target=article_service.run_everyday())
+    everyday_thread.start()
     app.run(debug=True)
