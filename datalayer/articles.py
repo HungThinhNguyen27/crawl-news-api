@@ -7,23 +7,22 @@ from sqlalchemy import create_engine, func
 from model.articles import Base, News, Category
 from typing import List, Optional, Tuple
 from elasticsearch import Elasticsearch
-from datalayer.database import Database
+from datalayer.mysql_connect import MySqlConnect
+# cách dặt tên hàm V + O(mô tả động từ )
 
 
-class Article(Database):
+class Article(MySqlConnect):
 
-    def search(self, query: Optional[str], limit: int, offset: int) -> Tuple[List[News], int]:
+    def search(self, query: Optional[str], limit: int, offset: int) -> Tuple[List[News]]:
         articles_query = self.session.query(News)
-        total_count = self.get_total_count()
 
         if query:
             articles_query = articles_query.filter(News.title.contains(query))
-            total_count = self.get_total_count(query)
 
         articles = articles_query.limit(limit).offset(offset).all()
-        return articles, total_count
+        return articles
 
-    def get_total_count(self, query: Optional[str] = None) -> int:
+    def count(self, query: Optional[str]) -> int:
         if query:
             total_count_query = self.session.query(func.count(News.id)).filter(
                 News.title.contains(query))
@@ -33,24 +32,21 @@ class Article(Database):
         total_count = total_count_query.scalar()
         return total_count
 
-    def get(self, id: int) -> Optional[News]:
-        id_articles = self.session.query(News).filter(News.id == id).first()
-        return id_articles
+    def get(self) -> List[News]:
+        articles = self.session.query(News).all()
+        return articles
+
+    def get_by_id(self, id: int) -> Optional[News]:
+        article = self.session.query(News).filter(News.id == id).first()
+        return article
 
     def delete(self, id: int) -> None:
         self.session.delete(id)
         self.commit()
 
     def add(self, news: News) -> None:
-        article_new = self.session.add(news)
+        self.session.add(news)
         self.session.commit()
-        return article_new
 
     def commit(self) -> None:
         self.session.commit()
-
-    def get_hash(self, hash: str) -> bool:
-        count = self.session.query(func.count(News.id)).filter(
-            News.hash == hash).scalar()
-
-        return count > 0

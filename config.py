@@ -9,3 +9,6 @@ class Config(object):
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
     MYSQL_DB = os.environ.get("MYSQL_DB")
+
+    INDEX = os.environ.get("INDEX")
+    ES_HOST = os.environ.get("ES_HOST")

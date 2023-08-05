@@ -1,22 +1,21 @@
 
 
-from datalayer.database import Database
+from datalayer.mysql_connect import MySqlConnect
 from model.articles import Category
 from typing import Optional, List
 
 
-class Category_(Database):
+class Category_(MySqlConnect):
 
-    def get_category(self) -> List[Category]:
-        all_src_news = self.session.query(Category).all()
-        return all_src_news
+    def get(self) -> List[Category]:
+        category = self.session.query(Category).all()
+        return category
 
-    def get_category_url(self, url: str) -> Optional[Category]:
-        Category_url_news = self.session.query(
-            Category).filter(Category.url == url).first()
-        return Category_url_news
-
-    def add(self, new_src_article):
-        article_new = self.session.add(new_src_article)
+    def add(self, new_url_article: Category) -> None:
+        self.session.add(new_url_article)
         self.session.commit()
-        return article_new
+
+    def get_by_url(self, url: str):
+        category_news = self.session.query(
+            Category).filter(Category.url == url).first
+        return category_news

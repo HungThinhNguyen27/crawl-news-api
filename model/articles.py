@@ -23,7 +23,7 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), nullable=False)
-    img_links = Column(String, nullable=False)
+    img_links = Column(String(255), nullable=False)
     content = Column(Text)
     original_url = Column(String(255))
     category_id = Column(Integer, ForeignKey("category_news.id"))
@@ -33,7 +33,7 @@ class News(Base):
     __table_args__ = (
         Index("category_idx", category_id),
         Index("title", "content", mysql_length={
-              "title": 255, "content": "longtext"}),
+              "title": 255, "content": "767"}),
         {
             "mysql_charset": "utf8mb4",
             "mysql_collate": "utf8mb4_general_ci",
@@ -52,11 +52,13 @@ class Category(Base):
     articles = relationship("News", back_populates="category")
 
 
-class ArticleOutput:
+class OutputFormat:
+
     def __init__(self, article):
         self.article = article
+        # self.meta = meta
 
-    def output(self):
+    def article_format(self):
         return {
             "id": self.article.id,
             "title": self.article.title,

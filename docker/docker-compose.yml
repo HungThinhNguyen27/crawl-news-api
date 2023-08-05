@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=datasearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.initial_master_nodes=elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.10
+    ports:
+      - "5601:5601"
+
+  mysql_db:
+    image: mysql:latest
+    container_name: mysql-container
+    environment:
+      - MYSQL_ROOT_PASSWORD=kuypi4187
+      - MYSQL_DATABASE=vnedb
+    ports:
+      - "3307:3306"
+    expose:
+      - 3306
+      
+  news_crawler_api:
+    build: /Users/macos/Downloads/WORKSPACE/NewsCrawlerAPI/docker/dockerfile
+    restartr: unlesss-stopped
+    environment:
+      - DB_PORT= 3306
+      - DB_HOST= mysql_db
+    ports:
+      - "5002:5000" 
+
+networks:
+  mysql-python-app-network: 
+    name: mysql-python-app-network
+
+volumes:
+  esdata:
+    driver: local
+    driver_opts:
+      type: none
+      device: /Users/macos/Downloads/WORKSPACE/NewsCrawlerAPI/docker/elasticsearch/data
+      o: bind
+  
+
